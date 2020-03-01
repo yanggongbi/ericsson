@@ -3,38 +3,9 @@
 ## Task 0: Install a ubuntu 16.04 server 64-bit
 
  * spin up a digitalocean instance with 4 GB Memory / 25 GB Disk / Ubuntu 16.04.6 (LTS) x64
- * upload my SSH public key to the account
- * verify access
-
-```
-gyang@gyang-macOS ~ $ ssh root@178.128.50.80
-The authenticity of host '178.128.50.80 (178.128.50.80)' can't be established.
-ECDSA key fingerprint is SHA256:LBjYOXIN2JlN25gpJaC4QJbinvZ6LfgSkw4OpVx0Lfw.
-Are you sure you want to continue connecting (yes/no)? yes
-Warning: Permanently added '178.128.50.80' (ECDSA) to the list of known hosts.
-Welcome to Ubuntu 16.04.6 LTS (GNU/Linux 4.4.0-169-generic x86_64)
-
-
- * Documentation:  https://help.ubuntu.com
- * Management:     https://landscape.canonical.com
- * Support:        https://ubuntu.com/advantage
-
-
-0 packages can be updated.
-0 updates are security updates.
-
-
-The programs included with the Ubuntu system are free software;
-the exact distribution terms for each program are described in the
-individual files in /usr/share/doc/*/copyright.
-
-
-Ubuntu comes with ABSOLUTELY NO WARRANTY, to the extent permitted by
-applicable law.
-
-
-root@ubuntu-1604:~#
-```
+ * upload the SSH public key to my account
+ * setup port forwarding rules
+ * test SSH access
 
 ## Task 1: Update system
 
@@ -477,5 +448,5 @@ namespace:  20 bytes
 token:      <authentication_token>
 ```
 
- * access the dashboard endpoint http://localhost:31081/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/ 
+ * access the dashboard endpoint http://127.0.0.1:31081/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/
  * choose **Token** and paste *<authentication_token>* from the previous command into the **Token** field, and choose **SIGN IN**
