@@ -1,6 +1,6 @@
 # demo project required by SRE role
 
-### Task 0: Install a ubuntu 16.04 server 64-bit
+## Task 0: Install a ubuntu 16.04 server 64-bit
 
  * spin up a digitalocean instance with 4 GB Memory / 25 GB Disk / Ubuntu 16.04.6 (LTS) x64
  * upload my SSH public key to the account
@@ -36,14 +36,14 @@ applicable law.
 root@ubuntu-1604:~#
 ```
 
-### Task 1: Update system
+## Task 1: Update system
 
 ```
 apt update
 apt upgrade
 ```
 
-### Task 2: install gitlab-ce version in the host
+## Task 2: install gitlab-ce version in the host
 
  * install dependencies and gitlab packages
 
@@ -63,9 +63,9 @@ export LC_CTYPE="en_US.UTF-8"
 gitlab-ctl reconfigure
 ```
 
-### Task 3: create a demo group/project in gitlab 
+## Task 3: create a demo group/project in gitlab 
 
-## use golang to build a hello world web app (listen to 8081 port) and check-in the code to mainline.
+### use golang to build a hello world web app (listen to 8081 port) and check-in the code to mainline.
 
  * update `root` password then create *group* `demo` & *project* `go-web-hello-world` in gitlab
  * run `ssh-keygen` to generate SSH key pair and upload the pub key to the gitlab
@@ -104,7 +104,7 @@ func main() {
 
  * adding `docker/hello-world.go` to the remote repository
 
-### Task 4: build the app and expose ($ go run) the service to 8081 port
+## Task 4: build the app and expose ($ go run) the service to 8081 port
 
  * install golang
 
@@ -123,7 +123,7 @@ root@ubuntu-1604:~# curl http://127.0.0.1:8081
 Go Web Hello World!
 ```
 
-### Task 5: install docker
+## Task 5: install docker
 
 ```
 apt-get install apt-transport-https ca-certificates curl gnupg-agent software-properties-common
@@ -133,9 +133,9 @@ apt-get update
 apt-get install docker-ce docker-ce-cli containerd.io
 ```
 
-### Task 6: run the app in container
+## Task 6: run the app in container
 
-## build a docker image ($ docker build) for the web app and run that in a container ($ docker run), expose the service to 8082 (-p)
+### build a docker image ($ docker build) for the web app and run that in a container ($ docker run), expose the service to 8082 (-p)
 
  * cd to `go-web-hello-world/docker` and touch the `Dockerfile` with following content
 
@@ -167,9 +167,9 @@ root@ubuntu-1604:~# curl http://127.0.0.1:8082
 Go Web Hello World!
 ```
 
-### Task 7: push image to dockerhub
+## Task 7: push image to dockerhub
 
-## tag the docker image using your_dockerhub_id/go-web-hello-world:v0.1 and push it to docker hub (https://hub.docker.com/)
+### tag the docker image using your_dockerhub_id/go-web-hello-world:v0.1 and push it to docker hub (https://hub.docker.com/)
 
  * sign up the hub.docker.com with dockerhub id *yanggongbi*
  * tag the image
@@ -187,10 +187,11 @@ docker push yanggongbi/go-web-hello-world:v0.1
 
  * verify https://hub.docker.com/repository/docker/yanggongbi/go-web-hello-world is available
 
-### Task 8: document the procedure in a MarkDown file
+## Task 8: document the procedure in a MarkDown file
 
-### Task 9: install a single node Kubernetes cluster using kubeadm
-## Check in the admin.conf file into the gitlab repo
+## Task 9: install a single node Kubernetes cluster using kubeadm
+
+### Check in the admin.conf file into the gitlab repo
 
  * ensure legacy binaries are installed
 
@@ -248,9 +249,9 @@ kube-system   kube-scheduler-ubuntu-1604                 1/1     Running   0    
 
  * mkdir `go-web-hello-world/k8s` and adding `go-web-hello-world/k8s/admin.conf` to the remote repository
 
-### Task 10: deploy the hello world container
+## Task 10: deploy the hello world container
 
-## in the kubernetes above and expose the service to nodePort 31080
+### in the kubernetes above and expose the service to nodePort 31080
 
 * touch `go-web-hello-world/k8s/go-web-hello-world-deployment.yaml` with the following content
 
@@ -360,13 +361,13 @@ root@ubuntu-1604:~# curl 127.0.0.1:31080
 Go Web Hello World!
 ```
 
-## Check in the deployment yaml file or the command line into the gitlab repo
+### Check in the deployment yaml file or the command line into the gitlab repo
 
 * adding both of `k8s/go-web-hello-world-deployment.yaml` and `k8s/go-web-hello-world-svc.yaml` to the remote repository
 
-### Task 11: install kubernetes dashboard
+## Task 11: install kubernetes dashboard
 
-## and expose the service to nodeport 31081
+### and expose the service to nodeport 31081
 
  * Deploying the Dashboard UI
 
