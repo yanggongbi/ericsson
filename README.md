@@ -184,3 +184,182 @@ docker tag 09c29cfd2002 yanggongbi/go-web-hello-world:v0.1
 docker login --username yanggongbi --password my_dockerhub_passwd
 docker push yanggongbi/go-web-hello-world:v0.1
 ```
+
+ * verify https://hub.docker.com/repository/docker/yanggongbi/go-web-hello-world is available
+
+### Task 8: document the procedure in a MarkDown file
+
+### Task 9: install a single node Kubernetes cluster using kubeadm
+## Check in the admin.conf file into the gitlab repo
+
+ * ensure legacy binaries are installed
+
+```
+apt-get install -y iptables arptables ebtables
+```
+
+ * Installing kubeadm, kubelet and kubectl
+
+```
+apt-get update && sudo apt-get install -y apt-transport-https curl
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
+deb https://apt.kubernetes.io/ kubernetes-xenial main
+EOF
+apt-get update
+apt-get install -y kubelet kubeadm kubectl
+apt-mark hold kubelet kubeadm kubectl
+```
+
+ * Initializing control-plane node
+
+```
+export KUBECONFIG=/etc/kubernetes/admin.conf
+kubeadm init
+```
+
+ * Installing a Pod network add-on
+
+```
+kubectl apply -f https://docs.projectcalico.org/v3.11/manifests/calico.yaml
+```
+
+ * Control plane node isolation
+
+```
+kubectl taint nodes --all node-role.kubernetes.io/master-
+```
+
+ * verify if all the components are ready
+
+```
+root@ubuntu-1604:~# kubectl get pods --all-namespaces
+NAMESPACE     NAME                                       READY   STATUS    RESTARTS   AGE
+kube-system   calico-kube-controllers-5b644bc49c-4hggv   1/1     Running   0          10m
+kube-system   calico-node-jf6fm                          1/1     Running   0          10m
+kube-system   coredns-6955765f44-45jtv                   1/1     Running   0          41m
+kube-system   coredns-6955765f44-l7mcw                   1/1     Running   0          41m
+kube-system   etcd-ubuntu-1604                           1/1     Running   0          42m
+kube-system   kube-apiserver-ubuntu-1604                 1/1     Running   0          42m
+kube-system   kube-controller-manager-ubuntu-1604        1/1     Running   0          42m
+kube-system   kube-proxy-z5vk5                           1/1     Running   0          41m
+kube-system   kube-scheduler-ubuntu-1604                 1/1     Running   0          42m
+```
+
+ * mkdir `go-web-hello-world/k8s` and adding `go-web-hello-world/k8s/admin.conf` to the remote repository
+
+### Task 10: deploy the hello world container
+
+## in the kubernetes above and expose the service to nodePort 31080
+
+* touch `go-web-hello-world/k8s/go-web-hello-world-deployment.yaml` with the following content
+
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-web-hello-world
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: go-web-hello-world
+  template:
+    metadata:
+      labels:
+        app: go-web-hello-world
+    spec:
+      containers:
+      - image: yanggongbi/go-web-hello-world:v0.1
+        name: go-web-hello-world
+        ports:
+          - containerPort: 8081
+```
+
+ * create deployment
+
+```
+kubectl apply -f go-web-hello-world-deployment.yaml
+```
+
+ * do verification
+
+```
+root@ubuntu-1604:~/go-web-hello-world/k8s# kubectl get all
+NAME                                      READY   STATUS    RESTARTS   AGE
+pod/go-web-hello-world-5cb7449d9c-xl8d5   1/1     Running   0          14s
+
+NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+service/kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   128m
+
+NAME                                 READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/go-web-hello-world   1/1     1            1           14s
+
+NAME                                            DESIRED   CURRENT   READY   AGE
+replicaset.apps/go-web-hello-world-5cb7449d9c   1         1         1       15s
+```
+
+```
+root@ubuntu-1604:~/go-web-hello-world/k8s# kubectl get pods -l app=go-web-hello-world
+NAME                                  READY   STATUS    RESTARTS   AGE
+go-web-hello-world-5cb7449d9c-xl8d5   1/1     Running   0          2m49s
+```
+
+ * touch `go-web-hello-world/k8s/go-web-hello-world-svc.yaml` with the following content
+
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: go-web-hello-world
+  labels:
+    run: go-web-hello-world
+spec:
+  type: NodePort
+  ports:
+    - port: 31080
+      protocol: TCP
+      targetPort: 8081
+  selector:
+    app: go-web-hello-world
+```
+
+* apply the svc yaml and verify
+
+```
+kubectl apply -f go-web-hello-world-svc.yaml
+```
+
+```
+root@ubuntu-1604:~/go-web-hello-world/k8s# kubectl get all
+NAME                                      READY   STATUS    RESTARTS   AGE
+pod/go-web-hello-world-5cb7449d9c-jns9x   1/1     Running   0          117m
+
+NAME                         TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)           AGE
+service/go-web-hello-world   NodePort    10.103.30.30   <none>        31080:30275/TCP   83m
+service/kubernetes           ClusterIP   10.96.0.1      <none>        443/TCP           118m
+
+NAME                                 READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/go-web-hello-world   1/1     1            1           117m
+
+NAME                                            DESIRED   CURRENT   READY   AGE
+replicaset.apps/go-web-hello-world-5cb7449d9c   1         1         1       117m
+```
+
+ * tried to use *LoadBalancer* type svc with *EXTERNAL-IP* but no luck with it, so using `port-forward` as a workaround
+
+```
+root@ubuntu-1604:~/go-web-hello-world/k8s# kubectl port-forward service/go-web-hello-world 31080:31080 >/dev/null 2>&1 &
+[1] 24567
+```
+
+ * curl verify
+
+```
+root@ubuntu-1604:~# curl 127.0.0.1:31080
+Go Web Hello World!
+```
+
+## Check in the deployment yaml file or the command line into the gitlab repo
+
+* adding both of `k8s/go-web-hello-world-deployment.yaml` and `k8s/go-web-hello-world-svc.yaml` to the remote repository
