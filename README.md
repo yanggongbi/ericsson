@@ -413,9 +413,9 @@ root@ubuntu-1604:~# curl -L http://127.0.0.1:31081/version
 }
 ```
 
-### Task 12: generate token for dashboard login in task 11
+## Task 12: generate token for dashboard login in task 11
 
-## Create an eks-admin Service Account and Cluster Role Binding
+### Create an eks-admin Service Account and Cluster Role Binding
 
  * touch `k8s/admin-user.yaml` with the following content
 
