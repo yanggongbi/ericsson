@@ -363,3 +363,118 @@ Go Web Hello World!
 ## Check in the deployment yaml file or the command line into the gitlab repo
 
 * adding both of `k8s/go-web-hello-world-deployment.yaml` and `k8s/go-web-hello-world-svc.yaml` to the remote repository
+
+### Task 11: install kubernetes dashboard
+
+## and expose the service to nodeport 31081
+
+ * Deploying the Dashboard UI
+
+```
+root@ubuntu-1604:~# kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta8/aio/deploy/recommended.yaml
+namespace/kubernetes-dashboard created
+serviceaccount/kubernetes-dashboard created
+service/kubernetes-dashboard created
+secret/kubernetes-dashboard-certs created
+secret/kubernetes-dashboard-csrf created
+secret/kubernetes-dashboard-key-holder created
+configmap/kubernetes-dashboard-settings created
+role.rbac.authorization.k8s.io/kubernetes-dashboard created
+clusterrole.rbac.authorization.k8s.io/kubernetes-dashboard created
+rolebinding.rbac.authorization.k8s.io/kubernetes-dashboard created
+clusterrolebinding.rbac.authorization.k8s.io/kubernetes-dashboard created
+deployment.apps/kubernetes-dashboard created
+service/dashboard-metrics-scraper created
+deployment.apps/dashboard-metrics-scraper created
+```
+
+ * run the proxy for accessing the dasboard with port 31081
+
+```
+root@ubuntu-1604:~# kubectl proxy --address 127.0.0.1 --port 31081
+Starting to serve on 127.0.0.1:31081
+```
+
+ * do verification
+
+```
+root@ubuntu-1604:~# curl -L http://127.0.0.1:31081/version
+{
+  "major": "1",
+  "minor": "17",
+  "gitVersion": "v1.17.3",
+  "gitCommit": "06ad960bfd03b39c8310aaf92d1e7c12ce618213",
+  "gitTreeState": "clean",
+  "buildDate": "2020-02-11T18:07:13Z",
+  "goVersion": "go1.13.6",
+  "compiler": "gc",
+  "platform": "linux/amd64"
+}
+```
+
+### Task 12: generate token for dashboard login in task 11
+
+## Create an eks-admin Service Account and Cluster Role Binding
+
+ * touch `k8s/admin-user.yaml` with the following content
+
+```
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: admin-user
+  namespace: kubernetes-dashboard
+```
+
+ * touch `k8s/cluster-role-binding.yaml` with the following content
+
+```
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: admin-user
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: admin-user
+  namespace: kubernetes-dashboard
+```
+
+ * apply the service account and cluster role binding
+
+```
+root@ubuntu-1604:~/go-web-hello-world/k8s# kubectl create -f admin-user.yaml
+serviceaccount/admin-user created
+```
+
+```
+root@ubuntu-1604:~/go-web-hello-world/k8s# kubectl create -f cluster-role-binding.yaml
+clusterrolebinding.rbac.authorization.k8s.io/admin-user created
+```
+
+ * retrieve an authentication token for the *admin-user* service account
+
+```
+root@ubuntu-1604:~/go-web-hello-world/k8s# kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get secret | grep admin-user | awk '{print $1}')
+Name:         admin-user-token-2x94t
+Namespace:    kubernetes-dashboard
+Labels:       <none>
+Annotations:  kubernetes.io/service-account.name: admin-user
+              kubernetes.io/service-account.uid: ea90414e-4cb8-4c7e-8e78-b65c6324a4da
+
+
+Type:  kubernetes.io/service-account-token
+
+
+Data
+====
+ca.crt:     1025 bytes
+namespace:  20 bytes
+token:      <authentication_token>
+```
+
+ * access the dashboard endpoint http://localhost:31081/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/ 
+ * choose **Token** and paste *<authentication_token>* from the previous command into the **Token** field, and choose **SIGN IN**
